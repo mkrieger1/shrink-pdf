@@ -1,6 +1,6 @@
 import subprocess
 import sys
-from os.path import basename, splitext
+from os.path import basename, getsize, splitext
 
 
 def call_gs(infile: str) -> bytes:
@@ -12,9 +12,33 @@ def call_gs(infile: str) -> bytes:
     ])
 
 
-def write_result(result: bytes, outfile: str) -> None:
+def write_result_if_smaller(
+    infile: str, result: bytes, outfile: str, max_percent: float = 60
+) -> bool:
+    """Write the output file if it is sufficiently small.
+
+    :param infile: Path to input file (used to determine size)
+    :param result: Data to write
+    :param outfile: Path to output file
+    :param max_percent:
+        Write only if result is smaller than this percentage of the input
+
+    :return: True if output file was written, False otherwise
+    """
+    input_size = getsize(infile)
+    max_size = int(input_size / 100 * max_percent)
+    output_size = len(result)
+
+    if output_size > max_size:
+        print(
+            f'{infile}: {input_size} -> {output_size} bytes '
+            f'({output_size / input_size * 100:.0f} %)'
+        )
+        return False
+
     with open(outfile, 'wb') as f:
         f.write(result)
+    return True
 
 
 def main() -> None:
@@ -36,4 +60,4 @@ def main() -> None:
         result = call_gs(infile)
     except subprocess.CalledProcessError as e:
         raise SystemExit(e)
-    write_result(result, outfile)
+    write_result_if_smaller(infile, result, outfile)
