@@ -2,7 +2,15 @@ import subprocess
 import sys
 from os.path import basename, splitext
 
-def main():
+
+def call_gs(infile: str, outfile: str):
+    subprocess.check_call([
+        'gs', '-sDEVICE=pdfwrite', '-dPDFSETTINGS=/ebook',
+        '-dNOPAUSE', '-dBATCH', f'-sOutputFile={outfile}', infile
+    ])
+
+
+def main() -> None:
     if len(sys.argv) == 3:
         infile = sys.argv[1]
         outfile = sys.argv[2]
@@ -17,7 +25,7 @@ def main():
         raise SystemExit(
             f"Usage: {basename(sys.argv[0])} input.pdf [output.pdf]")
 
-    subprocess.check_call([
-        'gs', '-sDEVICE=pdfwrite', '-dPDFSETTINGS=/ebook',
-        '-dNOPAUSE', '-dBATCH', f'-sOutputFile={outfile}', infile
-    ])
+    try:
+        call_gs(infile, outfile)
+    except subprocess.CalledProcessError as e:
+        raise SystemExit(e)
