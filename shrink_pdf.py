@@ -1,5 +1,5 @@
+import argparse
 import subprocess
-import sys
 from os.path import basename, getsize, splitext
 
 
@@ -45,22 +45,42 @@ def write_result_if_smaller(
 
 
 def main() -> None:
-    if len(sys.argv) == 3:
-        infile = sys.argv[1]
-        outfile = sys.argv[2]
-    elif len(sys.argv) == 2:
-        infile = sys.argv[1]
-        fullname = basename(infile)
+    parser = argparse.ArgumentParser(
+        description='Rewrite a PDF file using GhostScript to make it smaller'
+    )
+    parser.add_argument('infile', metavar='input.pdf')
+    parser.add_argument(
+        '-o', dest='outfile', metavar='output.pdf',
+        help=(
+            'Path to output file '
+            '(a filename in the working directory is chosen by default)'
+        )
+    )
+    parser.add_argument(
+        '-m', dest='max_percent', type=float, default=60,
+        help=(
+            'Write output file only if it would be smaller '
+            'than this percentage of the input file size'
+        )
+    )
+    parser.add_argument(
+        '-c', dest='check_only', action='store_true',
+        help='Just check the result size, do not write the file'
+    )
+    args = parser.parse_args()
+
+    if not args.outfile:
+        fullname = basename(args.infile)
         name, ext = splitext(fullname)
         if ext != '.pdf':
             name = fullname
-        outfile = f'{name}.out.pdf'
-    else:
-        raise SystemExit(
-            f"Usage: {basename(sys.argv[0])} input.pdf [output.pdf]")
+        args.outfile = f'{name}.out.pdf'
 
     try:
-        result = call_gs(infile)
+        result = call_gs(args.infile)
     except subprocess.CalledProcessError as e:
         raise SystemExit(e)
-    write_result_if_smaller(infile, result, outfile)
+    write_result_if_smaller(
+        args.infile, result, args.outfile,
+        max_percent=args.max_percent, check_only=args.check_only
+    )
