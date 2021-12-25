@@ -13,7 +13,8 @@ def call_gs(infile: str) -> bytes:
 
 
 def write_result_if_smaller(
-    infile: str, result: bytes, outfile: str, max_percent: float = 60
+    infile: str, result: bytes, outfile: str, max_percent: float = 60,
+    check_only: bool = False
 ) -> bool:
     """Write the output file if it is sufficiently small.
 
@@ -22,6 +23,8 @@ def write_result_if_smaller(
     :param outfile: Path to output file
     :param max_percent:
         Write only if result is smaller than this percentage of the input
+    :param check_only:
+        Do not write, just print a message of the result size
 
     :return: True if output file was written, False otherwise
     """
@@ -29,7 +32,7 @@ def write_result_if_smaller(
     max_size = int(input_size / 100 * max_percent)
     output_size = len(result)
 
-    if output_size > max_size:
+    if output_size > max_size or check_only:
         print(
             f'{infile}: {input_size} -> {output_size} bytes '
             f'({output_size / input_size * 100:.0f} %)'
