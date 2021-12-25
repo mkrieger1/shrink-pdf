@@ -6,3 +6,7 @@ Rewrites a PDF using GhostScript to hopefully make it smaller
 
 Original source:
 https://stackoverflow.com/questions/10450120/optimize-pdf-files-with-ghostscript-or-other
+
+# Installation
+
+    python3 -m pip install .
